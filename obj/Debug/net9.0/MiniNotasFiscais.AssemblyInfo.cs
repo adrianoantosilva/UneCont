@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MiniNotasFiscais")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7af408a60b37144d2fc709101e104764331b6563")]
 [assembly: System.Reflection.AssemblyProductAttribute("MiniNotasFiscais")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MiniNotasFiscais")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
