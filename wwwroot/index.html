@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Cadastro de Notas Fiscais</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.9/jquery.inputmask.min.js"></script>
+  </head>
+  <body class="container py-4">
+    <h2>Cadastro de Nota Fiscal</h2>
+
+    <!-- Formulário -->
+    <form id="formNota" class="row g-3">
+      <div class="col-md-2">
+        <label class="form-label">Número</label>
+        <input
+          type="text"
+          class="form-control"
+          id="numero"
+          maxlength="5"
+          required
+        />
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Cliente</label>
+        <input
+          type="text"
+          class="form-control"
+          id="cliente"
+          maxlength="100"
+          required
+        />
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Valor</label>
+        <input
+          type="text"
+          class="form-control"
+          id="valor"
+          maxlength="12"
+          required
+        />
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Data de Emissão</label>
+        <input type="date" class="form-control" id="dataEmissao" required />
+      </div>
+      <div class="col-12">
+        <button type="submit" class="btn btn-primary">Cadastrar</button>
+      </div>
+    </form>
+
+    <hr />
+
+    <!-- Botão de Filtro -->
+    <div class="mb-3">
+      <input
+        type="text"
+        id="filtro"
+        class="form-control"
+        placeholder="Filtrar por cliente..."
+      />
+    </div>
+
+    <!-- Listagem Tabela -->
+    <table class="table table-striped" id="tabelaNotas">
+      <thead>
+        <tr>
+          <th>Número</th>
+          <th>Cliente</th>
+          <th id="ordenarValor" style="cursor: pointer">
+            Valor &#x25B2;&#x25BC;
+          </th>
+
+          <th>Data de Emissão</th>
+          <th>Data de Cadastro</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <script>
+      // variavel que irá armazenar dos dados da Nota fiscal digitada
+      let notas = [];
+      var total = 0;
+
+      let ordemAsc = true; // controle de ordem (ascendente ou descendente)
+
+      function carregarNotas() {
+        $.get("/notas", function (data) {
+          notas = data;
+          renderTabela();
+        });
+      }
+
+      $("#ordenarValor").click(function () {
+        notas.sort((a, b) =>
+          ordemAsc ? a.valor - b.valor : b.valor - a.valor
+        );
+        ordemAsc = !ordemAsc; // alterna ordem
+        renderTabela();
+      });
+
+      function renderTabela() {
+        let filtro = $("#filtro").val().toLowerCase();
+
+        let linhas = "";
+
+        notas
+          .filter((n) => n.cliente.toLowerCase().includes(filtro))
+          .forEach((n) => {
+            linhas += `
+            <tr>
+              <td>${n.numero}</td>
+              <td>${n.cliente}</td>
+              <td>R$ ${n.valor.toFixed(2)}</td>
+              <td>${new Date(n.dataEmissao).toLocaleString()}</td>
+              <td>${new Date(n.dataCadastro).toLocaleString()}</td>
+            </tr>`;
+          });
+
+        $("#tabelaNotas tbody").html(linhas);
+      }
+
+      $("#formNota").submit(function (e) {
+        e.preventDefault();
+
+        let nota = {
+          numero: parseInt($("#numero").val()),
+          cliente: $("#cliente").val(),
+          valor: parseFloat(
+            $("#valor")
+              .val()
+              .replace("R$ ", "")
+              .replace(/\./g, "")
+              .replace(",", ".")
+          ),
+          dataEmissao: $("#dataEmissao").val(),
+        };
+
+        if (nota.valor <= 0) {
+          alert("O valor deve ser maior que zero!");
+          return;
+        }
+
+        $.ajax({
+          url: "/notas", // Endpoint do servidor da API
+          type: "POST", // Método HTTP
+          data: JSON.stringify(nota), // Converte o objeto para JSON
+          contentType: "application/json", // Define o tipo de conteúdo
+          success: function () {
+            carregarNotas(); // Atualiza a interface
+            $("#formNota")[0].reset(); // Limpa o formulário
+            alert("Registro gravado com sucesso!");
+          },
+          error: function () {
+            alert("Erro ao cadastrar");
+          },
+        });
+      });
+
+      $("#filtro").on("keyup", renderTabela);
+
+      $(document).ready(function () {
+        $("#valor").inputmask("currency", {
+          prefix: "R$ ",
+          groupSeparator: ".",
+          radixPoint: ",",
+          digits: 2,
+          autoGroup: true,
+          rightAlign: false,
+        });
+
+        carregarNotas();
+      });
+
+      //$(document).ready(carregarNotas);
+    </script>
+  </body>
+</html>
